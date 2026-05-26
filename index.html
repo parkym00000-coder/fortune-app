@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ 손금 운세 앱</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        video, canvas {
+            width: 100%;
+            border-radius: 10px;
+            border: 2px solid #667eea;
+            margin: 10px 0;
+        }
+
+        #preview {
+            width: 100%;
+            max-height: 300px;
+            margin: 10px 0;
+            border-radius: 10px;
+            display: none;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .result {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .step {
+            padding: 10px 15px;
+            border-radius: 20px;
+            background: #f0f0f0;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .step.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ 손금 운세 앱</h1>
+
+        <div class="step-indicator">
+            <div class="step active" id="step1-indicator">1️⃣ 사진</div>
+            <div class="step" id="step2-indicator">2️⃣ 분석</div>
+            <div class="step" id="step3-indicator">3️⃣ 운세</div>
+        </div>
+
+        <!-- 📸 1단계: 사진 촬영 -->
+        <div class="section" id="step1">
+            <h2>📸 1단계: 사진 촬영</h2>
+            
+            <div class="info">
+                💡 손바닥이 잘 보이도록 밝은 곳에서 촬영하세요!
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="startCamera()">📷 카메라 켜기</button>
+                <button class="btn-secondary" onclick="document.getElementById('fileInput').click()">📂 파일 선택</button>
+            </div>
+
+            <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="uploadFile(this)">
+
+            <div id="cameraContainer" style="display: none;">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                <button class="btn-primary" onclick="capturePhoto()" style="width: 100%; margin-top: 10px;">📷 사진 찍기</button>
+            </div>
+
+            <img id="preview" alt="촬영된 사진">
+        </div>
+
+        <!-- 🔍 2단계: 손금 분석 -->
+        <div class="section" id="step2" style="display: none;">
+            <h2>🔍 2단계: 손금 분석</h2>
+
+            <div class="info">
+                🤖 AI가 당신의 손금을 분석하고 있습니다...
+            </div>
+
+            <button class="btn-primary" onclick="analyzeImage()" style="width: 100%;">🤖 AI 분석하기</button>
+
+            <div id="analysisResult"></div>
+
+            <button class="btn-secondary" onclick="goBack()" style="width: 100%; margin-top: 10px;">◀️ 다시 촬영</button>
+        </div>
+
+        <!-- ✨ 3단계: 운세 -->
+        <div class="section" id="step3" style="display: none;">
+            <h2>✨ 3단계: 올해 운세</h2>
+
+            <div class="info">
+                📅 생년월일을 입력하면 당신의 운세를 알려줄게요!<br>
+                예: 2010-05-15 (년-월-일)
+            </div>
+
+            <input type="date" id="birthDate" max="">
+
+            <button class="btn-primary" onclick="generateFortune()" style="width: 100%;">✨ 운세 보기</button>
+
+            <div id="fortuneResult"></div>
+
+            <button class="btn-secondary" onclick="resetApp()" style="width: 100%; margin-top: 10px;">🏠 처음부터</button>
+        </div>
+    </div>
+
+    <script>
+        let currentImage = null;
+
+        document.getElementById('birthDate').max = new Date().toISOString().split('T')[0];
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user' }
+                });
+                
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                
+                document.getElementById('cameraContainer').style.display = 'block';
+            } catch (error) {
+                alert('카메라를 켤 수 없습니다.\n설정에서 카메라 권한을 허용해주세요.');
+            }
+        }
+
+        function capturePhoto() {
+            const canvas = document.getElementById('canvas');
+            const video = document.getElementById('video');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+
+            currentImage = canvas.toDataURL('image/jpeg');
+            
+            const preview = document.getElementById('preview');
+            preview.src = currentImage;
+            preview.style.display = 'block';
+
+            setTimeout(() => goToStep2(), 1000);
+        }
+
+        function uploadFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImage = e.target.result;
+                
+                const preview = document.getElementById('preview');
+                preview.src = currentImage;
+                preview.style.display = 'block';
+
+                setTimeout(() => goToStep2(), 500);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function goToStep2() {
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
+            document.getElementById('step1-indicator').classList.remove('active');
+            document.getElementById('step2-indicator').classList.add('active');
+        }
+
+        async function analyzeImage() {
+            if (!currentImage) {
+                alert('먼저 사진을 촬영하세요!');
+                return;
+            }
+
+            const resultDiv = document.getElementById('analysisResult');
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div> AI가 분석 중입니다...</div>';
+
+            try {
+                const response = await fetch('http://localhost:3001/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ imageData: currentImage })
+                });
+
+                const data = await response.json();
+
+                resultDiv.innerHTML = `<div class="result">${data.analysis}</div>`;
+
+                setTimeout(() => goToStep3(), 2000);
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result">❌ 분석 실패: ${error.message}</div>`;
+            }
+        }
+
+        function goToStep3() {
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step3').style.display = 'block';
+            document.getElementById('step2-indicator').classList.remove('active');
+            document.getElementById('step3-indicator').classList.add('active');
+        }
+
+        async function generateFortune() {
+            const birthDate = document.getElementById('birthDate').value;
+
+            if (!birthDate) {
+                alert('생년월일을 입력하세요!');
+                return;
+            }
+
+            const resultDiv = document.getElementById('fortuneResult');
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div> 당신의 운세를 만들고 있습니다...</div>';
+
+            try {
+                const response = await fetch('http://localhost:3001/fortune', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ birthDate })
+                });
+
+                const data = await response.json();
+
+                resultDiv.innerHTML = `<div class="result">${data.fortune}</div>`;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result">❌ 운세 생성 실패: ${error.message}</div>`;
+            }
+        }
+
+        function goBack() {
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('step2-indicator').classList.remove('active');
+            document.getElementById('step1-indicator').classList.add('active');
+        }
+
+        function resetApp() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
